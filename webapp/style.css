@@ -3,11 +3,12 @@ html, body {
   padding: 0;
   overflow: hidden;
 
-  touch-action: none;        /* 🔥 ГЛАВНОЕ */
-  overscroll-behavior: none; /* 🔥 убирает pull-to-refresh */
+  touch-action: none;
+  overscroll-behavior: none;
+  font-family: Arial, sans-serif;
 }
 
-/* меню */
+/* ===== МЕНЮ ===== */
 #menu {
   position: fixed;
   width: 100%;
@@ -17,6 +18,13 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+/* 🔥 ГЛАВНОЕ — БЕЛЫЙ SNAKE */
+#menu h1 {
+  color: white;
+  font-size: 32px;
+  margin-bottom: 20px;
 }
 
 .menu-buttons {
@@ -30,12 +38,20 @@ button {
   border-radius: 12px;
   background: #00ff88;
   font-weight: bold;
+  color: black;
 }
 
-/* игра */
+/* ===== ИГРА ===== */
 .game {
   text-align: center;
   margin-top: 20px;
+  color: white;
+}
+
+.score {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 
 canvas {
@@ -47,7 +63,7 @@ canvas {
   touch-action: none;
 }
 
-/* модалка */
+/* ===== МОДАЛКА (РЕЙТИНГ) ===== */
 .modal {
   position: fixed;
   top: 0;
@@ -72,43 +88,22 @@ canvas {
   box-shadow: 0 0 20px #00ff88;
 }
 
+/* 🔥 заголовок РЕЙТИНГ — БЕЛЫЙ */
+.modal-header h2 {
+  color: white;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
-}
-
-/* игрок */
-.player {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: rgba(255,255,255,0.05);
-  padding: 10px;
-  border-radius: 12px;
-  margin: 6px 0;
 }
 
-.player-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-}
-
-.gold { background: linear-gradient(90deg, gold, orange); color: black; }
-.silver { background: linear-gradient(90deg, #aaa, #666); }
-.bronze { background: linear-gradient(90deg, #ff8844, #aa4400); }
-
-/* крестик норм */
+/* ===== КРЕСТИК (маленький квадрат) ===== */
 .modal-header button {
   width: 28px;
   height: 28px;
-  border-radius: 8px; /* квадрат с лёгким скруглением */
+  border-radius: 6px;
   background: rgba(255,255,255,0.1);
   border: none;
   color: white;
@@ -122,33 +117,53 @@ canvas {
   transition: 0.2s;
 }
 
-/* hover эффект */
 .modal-header button:hover {
   background: rgba(0,255,136,0.2);
   box-shadow: 0 0 10px #00ff88;
 }
 
-/* аватар */
-.avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
-/* строка игрока */
+/* ===== СПИСОК ИГРОКОВ ===== */
 .player {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(255,255,255,0.05);
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 0;
+
+  color: rgb(0, 0, 0); /* 🔥 ИМЕНА БЕЛЫЕ */
 }
 
 .player-left {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
 
+/* 🥇 топ цвета */
+.gold {
+  background: linear-gradient(90deg, gold, orange);
+  color: black;
+}
+
+.silver {
+  background: linear-gradient(90deg, #aaa, #666);
+  color: white;
+}
+
+.bronze {
+  background: linear-gradient(90deg, #ff8844, #aa4400);
+  color: white;
+}
+
+/* ===== SHAKE ЭФФЕКТ ===== */
 .shake-screen {
   animation: shakeScreen 0.4s;
 }
@@ -160,31 +175,4 @@ canvas {
   60% { transform: translate(-10px, -10px); }
   80% { transform: translate(10px, 10px); }
   100% { transform: translate(0,0); }
-}
-
-/* ===== ФИКС ЦВЕТА ТЕКСТА ===== */
-
-.modal-content {
-  color: white; /* весь текст внутри белый */
-}
-
-.modal-header h2 {
-  color: #00ff88 !important; /* заголовок зелёный */
-}
-
-.player {
-  color: white; /* игроки белые */
-}
-
-.player span {
-  color: white;
-}
-
-.score {
-  color: white;
-}
-
-/* чтобы точно не было чёрного */
-* {
-  -webkit-text-fill-color: unset;
 }
