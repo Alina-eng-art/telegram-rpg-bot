@@ -3,13 +3,14 @@ html, body {
   padding: 0;
   overflow: hidden;
 
-  background: radial-gradient(circle, #0b1a2a, #02060d); /* тёмный фон */
+  background: radial-gradient(circle, #0b1a2a, #02060d);
   color: white;
 
   touch-action: none;
   overscroll-behavior: none;
   font-family: Arial, sans-serif;
-   display: flex;
+
+  display: flex;
   justify-content: center;
   align-items: center;
 }
@@ -26,7 +27,6 @@ html, body {
   justify-content: center;
 }
 
-/* 🔥 ГЛАВНОЕ — БЕЛЫЙ SNAKE */
 #menu h1 {
   color: white;
   font-size: 32px;
@@ -49,36 +49,35 @@ button {
 
 /* ===== ИГРА ===== */
 .game {
-  text-align: center;
-  margin-top: 20px;
-  background: transparent; /* ❌ убираем белый */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-   height: 100vh;
+
+  width: 100%;
+  height: 100vh;
 }
 
 .score {
-  color: rgb(12, 11, 11);
+  color: white; /* 🔥 фикс (было чёрное) */
   font-size: 18px;
   margin-bottom: 10px;
 }
 
+/* ===== КАНВАС (ГЛАВНЫЙ ФИКС) ===== */
 canvas {
-  width: 90vw;
-  max-width: 420px;
-  height: 90vw;
   background: #1e3a5f;
   border-radius: 20px;
   touch-action: none;
-   width: min(90vw, 400px);
-  height: min(90vw, 400px);
+
+  /* 💥 ВОТ НОРМ АДАПТИВ */
+  width: min(90vmin, 420px);
+  height: min(90vmin, 420px);
 
   display: block;
 }
 
-/* ===== МОДАЛКА (РЕЙТИНГ) ===== */
+/* ===== МОДАЛКА ===== */
 .modal {
   position: fixed;
   top: 0;
@@ -103,7 +102,6 @@ canvas {
   box-shadow: 0 0 20px #00ff88;
 }
 
-/* 🔥 заголовок РЕЙТИНГ — БЕЛЫЙ */
 .modal-header h2 {
   color: white;
 }
@@ -114,7 +112,7 @@ canvas {
   align-items: center;
 }
 
-/* ===== КРЕСТИК (маленький квадрат) ===== */
+/* ===== КРЕСТИК ===== */
 .modal-header button {
   width: 28px;
   height: 28px;
@@ -137,7 +135,7 @@ canvas {
   box-shadow: 0 0 10px #00ff88;
 }
 
-/* ===== СПИСОК ИГРОКОВ ===== */
+/* ===== ИГРОКИ ===== */
 .player {
   display: flex;
   justify-content: space-between;
@@ -147,7 +145,7 @@ canvas {
   border-radius: 12px;
   margin: 6px 0;
 
-  color: rgb(0, 0, 0); /* 🔥 ИМЕНА БЕЛЫЕ */
+  color: black; /* 🔥 как ты хотела */
 }
 
 .player-left {
@@ -162,7 +160,7 @@ canvas {
   border-radius: 50%;
 }
 
-/* 🥇 топ цвета */
+/* ТОП */
 .gold {
   background: linear-gradient(90deg, gold, orange);
   color: black;
@@ -178,7 +176,7 @@ canvas {
   color: white;
 }
 
-/* ===== SHAKE ЭФФЕКТ ===== */
+/* ===== SHAKE ===== */
 .shake-screen {
   animation: shakeScreen 0.4s;
 }
