@@ -1,137 +1,117 @@
-const canvas = document.getElementById('game')
-const ctx = canvas.getContext('2d')
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
-canvas.width = 400
-canvas.height = 400
+canvas.width = 400;
+canvas.height = 400;
 
-const grid = 20
+const size = 20;
+let snake = [{x: 10, y: 10}];
+let dir = 'right';
+let food = randomFood();
 
-// 🐍 картинки
-const snakeHead = new Image()
-snakeHead.src = "https://i.imgur.com/7QZ7Z6F.png"
+let score = 0;
+let best = localStorage.getItem('snake_best') || 0;
 
-const appleImg = new Image()
-appleImg.src = "https://i.imgur.com/1bX5QH6.png"
+document.getElementById('best').innerText = best;
 
-// ===== ЗМЕЯ =====
-let snake = {
-  x: 200,
-  y: 200,
-  dx: grid,
-  dy: 0,
-  cells: [],
-  maxCells: 4
+function randomFood() {
+  return {
+    x: Math.floor(Math.random() * 20),
+    y: Math.floor(Math.random() * 20)
+  };
 }
 
-// 🍎 яблоко
-let apple = {
-  x: 100,
-  y: 100
+function setDir(d) {
+  dir = d;
 }
 
-let score = 0
-
-// ===== УПРАВЛЕНИЕ =====
-function setDir(dir) {
-  if (dir === 'left' && snake.dx === 0) {
-    snake.dx = -grid
-    snake.dy = 0
-  }
-  if (dir === 'right' && snake.dx === 0) {
-    snake.dx = grid
-    snake.dy = 0
-  }
-  if (dir === 'up' && snake.dy === 0) {
-    snake.dy = -grid
-    snake.dx = 0
-  }
-  if (dir === 'down' && snake.dy === 0) {
-    snake.dy = grid
-    snake.dx = 0
-  }
-}
-
-// клавиатура
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') setDir('left')
-  if (e.key === 'ArrowRight') setDir('right')
-  if (e.key === 'ArrowUp') setDir('up')
-  if (e.key === 'ArrowDown') setDir('down')
-})
+  if (e.key === 'ArrowUp') dir = 'up';
+  if (e.key === 'ArrowDown') dir = 'down';
+  if (e.key === 'ArrowLeft') dir = 'left';
+  if (e.key === 'ArrowRight') dir = 'right';
+});
 
-// 📱 фикс для Telegram кнопок
-document.querySelectorAll("button").forEach(btn => {
-  btn.addEventListener("touchstart", (e) => {
-    e.preventDefault()
-  })
-})
+function gameLoop() {
+  let head = {...snake[0]};
 
-// ===== ИГРА =====
-function loop() {
-  requestAnimationFrame(loop)
+  if (dir === 'right') head.x++;
+  if (dir === 'left') head.x--;
+  if (dir === 'up') head.y--;
+  if (dir === 'down') head.y++;
 
-  // движение
-  snake.x += snake.dx
-  snake.y += snake.dy
-
-  // границы
-  if (snake.x < 0) snake.x = canvas.width - grid
-  if (snake.x >= canvas.width) snake.x = 0
-  if (snake.y < 0) snake.y = canvas.height - grid
-  if (snake.y >= canvas.height) snake.y = 0
-
-  snake.cells.unshift({ x: snake.x, y: snake.y })
-
-  if (snake.cells.length > snake.maxCells) {
-    snake.cells.pop()
+  // 💀 СМЕРТЬ ОБ СТЕНЫ
+  if (head.x < 0 || head.y < 0 || head.x >= 20 || head.y >= 20) {
+    return reset();
   }
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  // 💀 СМЕРТЬ ОБ СЕБЯ
+  for (let s of snake) {
+    if (s.x === head.x && s.y === head.y) {
+      return reset();
+    }
+  }
 
-  // 🍎 яблоко
-  ctx.drawImage(appleImg, apple.x, apple.y, grid, grid)
+  snake.unshift(head);
 
-  // 🐍 змейка
-  snake.cells.forEach((cell, index) => {
+  // 🍎 ЕДА
+  if (head.x === food.x && head.y === food.y) {
+    food = randomFood();
+    score++;
 
-    if (index === 0) {
-      ctx.drawImage(snakeHead, cell.x, cell.y, grid, grid)
-    } else {
-      ctx.fillStyle = "lime"
-      ctx.fillRect(cell.x, cell.y, grid-2, grid-2)
+    playEatSound();
+
+    if (score > best) {
+      best = score;
+      localStorage.setItem('snake_best', best);
+      document.getElementById('best').innerText = best;
     }
 
-    // съел яблоко
-    if (cell.x === apple.x && cell.y === apple.y) {
-      snake.maxCells++
-      score++
-      document.getElementById("score").innerText = "Score: " + score
+  } else {
+    snake.pop();
+  }
 
-      apple.x = Math.floor(Math.random() * 20) * grid
-      apple.y = Math.floor(Math.random() * 20) * grid
-    }
-
-    // в себя
-    for (let i = index + 1; i < snake.cells.length; i++) {
-      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
-        resetGame()
-      }
-    }
-  })
+  draw();
 }
 
-// ===== СБРОС =====
-function resetGame() {
-  snake.x = 200
-  snake.y = 200
-  snake.cells = []
-  snake.maxCells = 4
-  snake.dx = grid
-  snake.dy = 0
+function draw() {
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, 400, 400);
 
-  score = 0
-  document.getElementById("score").innerText = "Score: 0"
+  // 🍎 яблоко (красивое)
+  ctx.beginPath();
+  ctx.fillStyle = "red";
+  ctx.arc(food.x*20+10, food.y*20+10, 8, 0, Math.PI*2);
+  ctx.fill();
+
+  // 🐍 змея (гладкая)
+  snake.forEach((s, i) => {
+    ctx.fillStyle = i === 0 ? "#00ffcc" : "#00ccaa";
+    ctx.beginPath();
+    ctx.arc(s.x*20+10, s.y*20+10, 9, 0, Math.PI*2);
+    ctx.fill();
+  });
+
+  document.getElementById('score').innerText = score;
 }
 
-// 🚀 запуск
-loop()
+function reset() {
+  playDeadSound();
+
+  snake = [{x: 10, y: 10}];
+  dir = 'right';
+  score = 0;
+}
+
+// 🔊 ЗВУКИ
+function playEatSound() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+  audio.play();
+}
+
+function playDeadSound() {
+  const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+  audio.play();
+}
+
+setInterval(gameLoop, 120);
