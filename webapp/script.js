@@ -4,62 +4,70 @@ const ctx = canvas.getContext('2d')
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
-// ===== ГРАВЕЦЬ =====
+// ===== ИЗОБРАЖЕНИЯ =====
+const playerImg = new Image()
+playerImg.src = "https://i.imgur.com/4LGAZ8t.png" // персонаж
+
+const enemyImg = new Image()
+enemyImg.src = "https://i.imgur.com/Q9qFt3m.png" // враг
+
+// ===== ИГРОК =====
 let player = {
   x: 100,
   y: 300,
-  w: 40,
+  w: 60,
   h: 60,
   hp: 100,
-  speed: 5,
   dy: 0,
-  grounded: false
+  grounded: false,
+  attacking: false
 }
 
-// ===== ВОРОГ =====
+// ===== ВРАГ =====
 let enemy = {
-  x: 400,
+  x: 500,
   y: 300,
-  w: 40,
+  w: 60,
   h: 60,
-  hp: 50
+  hp: 100,
+  dir: -1
 }
 
-// ===== ЗЕМЛЯ =====
-const ground = canvas.height - 100
+const ground = canvas.height - 120
 
-// ===== РУХ =====
+// ===== УПРАВЛЕНИЕ =====
 function moveLeft() {
-  player.x -= player.speed
+  player.x -= 6
 }
 
 function moveRight() {
-  player.x += player.speed
+  player.x += 6
 }
 
 function jump() {
   if (player.grounded) {
-    player.dy = -12
+    player.dy = -13
     player.grounded = false
   }
 }
 
 function attack() {
-  const dist = Math.abs(player.x - enemy.x)
+  player.attacking = true
 
-  if (dist < 60) {
-    enemy.hp -= 10
+  setTimeout(() => {
+    player.attacking = false
+  }, 200)
 
-    if (enemy.hp <= 0) {
-      enemy.hp = 50
-      enemy.x = Math.random() * (canvas.width - 100)
-    }
+  let dist = Math.abs(player.x - enemy.x)
+  if (dist < 80) {
+    enemy.hp -= 15
   }
 }
 
-// ===== ФИЗИКА =====
+// ===== ОБНОВЛЕНИЕ =====
 function update() {
-  player.dy += 0.5
+  // гравитация
+  player.dy += 0.6
   player.y += player.dy
 
   if (player.y + player.h >= ground) {
@@ -68,10 +76,23 @@ function update() {
     player.grounded = true
   }
 
-  // враг бьёт
-  const dist = Math.abs(player.x - enemy.x)
-  if (dist < 50) {
-    player.hp -= 0.1
+  // враг идет к игроку
+  if (enemy.x > player.x) {
+    enemy.x -= 2
+  } else {
+    enemy.x += 2
+  }
+
+  // враг атакует
+  let dist = Math.abs(player.x - enemy.x)
+  if (dist < 60) {
+    player.hp -= 0.3
+  }
+
+  // респавн врага
+  if (enemy.hp <= 0) {
+    enemy.hp = 100
+    enemy.x = Math.random() * (canvas.width - 100)
   }
 
   document.getElementById('hp').innerText = Math.floor(player.hp)
@@ -79,30 +100,34 @@ function update() {
 
 // ===== РЕНДЕР =====
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0,0,canvas.width,canvas.height)
 
   // фон
-  ctx.fillStyle = '#142a5c'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = "#142a5c"
+  ctx.fillRect(0,0,canvas.width,canvas.height)
 
   // земля
-  ctx.fillStyle = '#6b4a2b'
-  ctx.fillRect(0, ground, canvas.width, 100)
+  ctx.fillStyle = "#6b4a2b"
+  ctx.fillRect(0, ground, canvas.width, 120)
 
   // игрок
-  ctx.fillStyle = 'cyan'
-  ctx.fillRect(player.x, player.y, player.w, player.h)
+  ctx.drawImage(playerImg, player.x, player.y, player.w, player.h)
+
+  // удар (эффект)
+  if (player.attacking) {
+    ctx.fillStyle = "yellow"
+    ctx.fillRect(player.x + 50, player.y + 20, 30, 10)
+  }
 
   // враг
-  ctx.fillStyle = 'red'
-  ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h)
+  ctx.drawImage(enemyImg, enemy.x, enemy.y, enemy.w, enemy.h)
 
   // HP врага
-  ctx.fillStyle = 'white'
+  ctx.fillStyle = "white"
   ctx.fillText("👹 " + enemy.hp, enemy.x, enemy.y - 10)
 }
 
-// ===== ИГРОВОЙ ЦИКЛ =====
+// ===== ЦИКЛ =====
 function gameLoop() {
   update()
   draw()
