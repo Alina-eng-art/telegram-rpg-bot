@@ -1,7 +1,7 @@
 body {
   margin: 0;
+  background: #0f1b3d;
   overflow: hidden;
-  background: linear-gradient(#1e2a4a, #0b1a33);
   font-family: Arial;
 }
 
@@ -15,10 +15,10 @@ canvas {
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 15px;
 }
 
-button {
+.controls button {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -26,4 +26,12 @@ button {
   font-size: 20px;
   background: rgba(255,255,255,0.2);
   color: white;
+}
+
+#ui {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  color: white;
+  font-size: 18px;
 }

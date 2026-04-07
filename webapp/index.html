@@ -10,12 +10,15 @@
 
 <canvas id="game"></canvas>
 
-<!-- КНОПКИ ДЛЯ ТЕЛЕФОНА -->
 <div class="controls">
-  <button id="left">⬅️</button>
-  <button id="jump">⬆️</button>
-  <button id="right">➡️</button>
-  <button id="attack">⚔️</button>
+  <button onclick="moveLeft()">⬅️</button>
+  <button onclick="jump()">⬆️</button>
+  <button onclick="moveRight()">➡️</button>
+  <button onclick="attack()">⚔️</button>
+</div>
+
+<div id="ui">
+  ❤️ <span id="hp">100</span>
 </div>
 
 <script src="script.js"></script>
