@@ -1,8 +1,10 @@
-body {
+html, body {
   margin: 0;
-  background: #0b1a2a;
-  font-family: Arial;
-  color: white;
+  padding: 0;
+  overflow: hidden;
+
+  touch-action: none;        /* 🔥 ГЛАВНОЕ */
+  overscroll-behavior: none; /* 🔥 убирает pull-to-refresh */
 }
 
 /* меню */
@@ -42,6 +44,7 @@ canvas {
   height: 90vw;
   background: #1e3a5f;
   border-radius: 20px;
+  touch-action: none;
 }
 
 /* модалка */
