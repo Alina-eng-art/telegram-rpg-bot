@@ -25,7 +25,8 @@ function vibrate(pattern){
   }
 }
 
-// 🧠 TELEGRAM USER
+// ================= TELEGRAM =================
+
 const tg = window.Telegram?.WebApp;
 tg?.expand();
 
@@ -39,7 +40,7 @@ const avatar = user.photo_url || "";
 best = localStorage.getItem("snake_best") || 0;
 document.getElementById("best").innerText = best;
 
-// ===== РЕЙТИНГ UI =====
+// ================= РЕЙТИНГ =================
 
 function openRating(){
   document.getElementById("ratingModal").classList.remove("hidden");
@@ -50,16 +51,9 @@ document.getElementById("closeRating").onclick = ()=>{
   document.getElementById("ratingModal").classList.add("hidden");
 };
 
-// 👉 КНОПКА ТОП (если есть)
-const topBtn = document.getElementById("topBtn");
-if(topBtn){
-  topBtn.onclick = openRating;
-}
-
-// ===== ОТПРАВКА (БЕЗ ДУБЛЕЙ) =====
-
+// 👉 ОТПРАВКА (без дублей)
 function sendScore(score){
-  fetch("https://snake-server-5swh.onrender.com/score", {
+  fetch("http://localhost:3001/score", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
@@ -71,18 +65,32 @@ function sendScore(score){
   }).catch(()=>{});
 }
 
-// ===== ЗАГРУЗКА РЕЙТИНГА =====
-
+// 👉 ЗАГРУЗКА
 function loadLeaderboard(){
-  fetch("https://snake-server-5swh.onrender.com/scores")
+  fetch("http://localhost:3001/scores")
     .then(res => res.json())
     .then(data => {
 
       const div = document.getElementById("ratingList");
-      if(!div) return;
-
       div.innerHTML = "";
 
+      // 💎 ТВОЙ ПРОФИЛЬ СВЕРХУ
+      const me = data.find(p => p.user_id == user_id);
+
+      if(me){
+        div.innerHTML += `
+        <div class="player me">
+          <div class="player-left">
+            <img class="avatar-small"
+              src="${me.avatar || 'https://ui-avatars.com/api/?name='+me.name}">
+            <div>👤 ${me.name} (Ти)</div>
+          </div>
+          <div class="score-num">${me.score}</div>
+        </div>
+        `;
+      }
+
+      // 🔥 ТОП
       data.forEach((p,i)=>{
 
         let cls = "";
@@ -101,11 +109,13 @@ function loadLeaderboard(){
         </div>
         `;
       });
+
     })
     .catch(()=>{});
 }
 
-// ▶️ старт игры
+// ================= ИГРА =================
+
 function startGame(){
   snake = [{x:10,y:10}];
   dir = {x:1,y:0};
@@ -124,7 +134,6 @@ function startGame(){
   gameLoop = setInterval(update, speed);
 }
 
-// 🍎 еда
 function randomFood(){
   return {
     x: Math.floor(Math.random()*20),
@@ -132,7 +141,6 @@ function randomFood(){
   };
 }
 
-// 💀 смерть
 function die(){
   clearInterval(gameLoop);
   started = false;
@@ -149,7 +157,6 @@ function die(){
   document.body.classList.add("shake");
   setTimeout(()=> document.body.classList.remove("shake"), 400);
 
-  // 💾 отправка
   sendScore(score);
 
   setTimeout(()=>{
@@ -158,7 +165,6 @@ function die(){
   }, 400);
 }
 
-// 🔁 логика
 function update(){
   let head = {
     x: snake[0].x + dir.x,
@@ -203,7 +209,7 @@ function update(){
   draw();
 }
 
-// 🎨 рисовка (SLITHER STYLE)
+// 🎨 SLITHER STYLE
 function draw(){
   ctx.save();
 
@@ -247,7 +253,6 @@ function draw(){
     ctx.fill();
   }
 
-  // 👀 глаза
   let head = snake[0];
   ctx.fillStyle = "black";
   ctx.beginPath();
@@ -266,12 +271,11 @@ function draw(){
   document.getElementById("score").innerText = score;
 }
 
-// 📱 фикс
+// управление
 document.body.addEventListener("touchmove", e=>{
   e.preventDefault();
 }, { passive:false });
 
-// свайпы
 let startX=0,startY=0;
 
 canvas.addEventListener("touchstart", e=>{
@@ -295,7 +299,6 @@ canvas.addEventListener("touchend", e=>{
   }
 });
 
-// клавиатура
 document.addEventListener("keydown", e=>{
   if(!started) return;
 
@@ -305,11 +308,10 @@ document.addEventListener("keydown", e=>{
   if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
 
-// кнопка PLAY
 document.getElementById("startBtn").onclick = ()=>{
   document.getElementById("menu").style.display = "none";
   startGame();
 };
 
-// загрузка рейтинга при старте
+// загрузка
 loadLeaderboard();
