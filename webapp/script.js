@@ -8,22 +8,23 @@ let snake, dir, food, score, best, speed;
 let gameLoop;
 let started = false;
 
-// эффекты
+// 💥 эффекты
 let shake = 0;
 let flash = 0;
+let boomPower = 0;
 
-// звуки
+// 🔊 звуки
 const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 const dieSound = new Audio("https://actions.google.com/sounds/v1/explosions/explosion.ogg");
 
-// вибрация
+// 📳 вибрация
 function vibrate(pattern){
   if(navigator.vibrate){
     navigator.vibrate(pattern);
   }
 }
 
-// TELEGRAM
+// ===== TELEGRAM =====
 const tg = window.Telegram?.WebApp;
 tg?.expand();
 
@@ -32,12 +33,11 @@ const user_id = user.id || "guest_" + Math.random();
 const playerName = user.first_name || "Player";
 const avatar = user.photo_url || "";
 
-// рекорд
+// 🏆 рекорд
 best = localStorage.getItem("snake_best") || 0;
 document.getElementById("best").innerText = best;
 
 // ===== UI =====
-
 window.addEventListener("load", () => {
   document.getElementById("topBtn").onclick = openRating;
 
@@ -46,14 +46,12 @@ window.addEventListener("load", () => {
   };
 });
 
-// открыть рейтинг
 function openRating(){
   document.getElementById("ratingModal").classList.remove("hidden");
   loadLeaderboard();
 }
 
 // ===== API =====
-
 const API = "https://snake-server-5swh.onrender.com";
 
 function sendScore(score){
@@ -107,10 +105,11 @@ function startGame(){
   food = randomFood();
   score = 0;
 
-  speed = 180; // ✅ медленнее старт
+  speed = 180;
 
   shake = 0;
   flash = 0;
+  boomPower = 0;
 
   document.getElementById("score").innerText = score;
 
@@ -120,7 +119,6 @@ function startGame(){
   gameLoop = setInterval(update, speed);
 }
 
-// еда
 function randomFood(){
   return {
     x: Math.floor(Math.random()*20),
@@ -128,13 +126,14 @@ function randomFood(){
   };
 }
 
-// смерть
+// 💀 смерть
 function die(){
   clearInterval(gameLoop);
   started = false;
 
-  shake = 20;
+  shake = 25;
   flash = 1;
+  boomPower = 20;
 
   dieSound.currentTime = 0;
   dieSound.play().catch(()=>{});
@@ -152,7 +151,7 @@ function die(){
   }, 400);
 }
 
-// логика
+// 🔁 логика
 function update(){
   let head = {
     x: snake[0].x + dir.x,
@@ -178,9 +177,9 @@ function update(){
 
     vibrate(50);
 
-    // ✅ ПЛАВНОЕ УСКОРЕНИЕ
+    // плавное ускорение
     if(speed > 90){
-      speed -= 3; // мягче ускоряется
+      speed -= 3;
       clearInterval(gameLoop);
       gameLoop = setInterval(update, speed);
     }
@@ -198,12 +197,17 @@ function update(){
   draw();
 }
 
-// 🎨 КРАСИВАЯ РИСОВКА
+// 🎨 РИСОВКА
 function draw(){
   ctx.save();
 
+  // 💥 тряска
   if(shake > 0){
-    ctx.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);
+    let power = shake * 0.8;
+    ctx.translate(
+      (Math.random()-0.5)*power,
+      (Math.random()-0.5)*power
+    );
     shake--;
   }
 
@@ -242,7 +246,7 @@ function draw(){
     ctx.fill();
   }
 
-  // глаза
+  // 👀 глаза
   let head = snake[0];
   ctx.fillStyle = "black";
   ctx.beginPath();
@@ -250,38 +254,48 @@ function draw(){
   ctx.arc(head.x*20+14, head.y*20+8, 2, 0, Math.PI*2);
   ctx.fill();
 
+  // 💥 взрыв
+  if(boomPower > 0){
+    ctx.beginPath();
+    ctx.arc(200, 200, boomPower * 3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,100,0,${boomPower/20})`;
+    ctx.fill();
+    boomPower--;
+  }
+
   ctx.restore();
 
+  // вспышка
   if(flash > 0){
     ctx.fillStyle = `rgba(255,255,255,${flash})`;
     ctx.fillRect(0,0,400,400);
-    flash -= 0.05;
+    flash -= 0.07;
   }
 
   document.getElementById("score").innerText = score;
 }
 
-// ===== 📱 ФИКС МОБИЛКИ =====
+// ===== 📱 СУПЕР ФИКС СВАЙПОВ =====
 
-// ❌ убираем скролл
-document.body.addEventListener("touchmove", e=>{
-  e.preventDefault();
-}, { passive:false });
-
-// свайпы
 let startX=0,startY=0;
 
 canvas.addEventListener("touchstart", e=>{
-  let t = e.touches[0];
+  const t = e.touches[0];
   startX = t.clientX;
   startY = t.clientY;
-});
+}, { passive:true });
+
+canvas.addEventListener("touchmove", e=>{
+  e.preventDefault(); // ❗ фикс скролла
+}, { passive:false });
 
 canvas.addEventListener("touchend", e=>{
-  let t = e.changedTouches[0];
+  const t = e.changedTouches[0];
 
   let dx = t.clientX - startX;
   let dy = t.clientY - startY;
+
+  if(Math.abs(dx) < 20 && Math.abs(dy) < 20) return; // ❗ анти-лаг
 
   if(Math.abs(dx) > Math.abs(dy)){
     if(dx>0 && dir.x!==-1) dir={x:1,y:0};
@@ -302,7 +316,7 @@ document.addEventListener("keydown", e=>{
   if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
 
-// кнопка
+// ▶️ кнопка
 document.getElementById("startBtn").onclick = ()=>{
   document.getElementById("menu").style.display = "none";
   startGame();
