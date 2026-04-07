@@ -2,24 +2,24 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🐍 Snake Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Snake</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="game">
-  <h2>🐍 Snake</h2>
+<div id="menu">
+  <h1>🐍 SNAKE</h1>
+  <button id="startBtn">PLAY</button>
+</div>
 
-  <p>Score: <span id="score">0</span></p>
-  <p>🏆 Best: <span id="best">0</span></p>
+<div class="game">
+  <div class="score">
+    Score: <span id="score">0</span> |
+    Best: <span id="best">0</span>
+  </div>
 
   <canvas id="game"></canvas>
-
-  <div class="buttons">
-    <button onclick="explode()">💣</button>
-    <button onclick="teleport()">⚡</button>
-  </div>
 </div>
 
 <script src="script.js"></script>
