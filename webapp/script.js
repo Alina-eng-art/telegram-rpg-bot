@@ -4,8 +4,24 @@ const ctx = canvas.getContext("2d");
 canvas.width = 400;
 canvas.height = 400;
 
-let snake, dir, food, score, best;
+let snake, dir, food, score, best, speed;
 let gameLoop;
+let started = false;
+
+// эффекты
+let shake = 0;
+let flash = 0;
+
+// звуки
+const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+const dieSound = new Audio("https://actions.google.com/sounds/v1/explosions/explosion.ogg");
+
+// вибрация
+function vibrate(pattern){
+  if(navigator.vibrate){
+    navigator.vibrate(pattern);
+  }
+}
 
 // TELEGRAM
 const tg = window.Telegram?.WebApp;
@@ -16,33 +32,44 @@ const user_id = user.id || "guest_" + Math.random();
 const playerName = user.first_name || "Player";
 const avatar = user.photo_url || "";
 
-// BEST
+// рекорд
 best = localStorage.getItem("snake_best") || 0;
 document.getElementById("best").innerText = best;
 
-// UI
+// ===== UI =====
 
-document.getElementById("closeRating").onclick = () => {
-document.getElementById("ratingModal").classList.add("hidden");
-};
+window.addEventListener("load", () => {
+  document.getElementById("topBtn").onclick = openRating;
 
-function openRating() {
+  document.getElementById("closeRating").onclick = () => {
+    document.getElementById("ratingModal").classList.add("hidden");
+  };
+});
+
+// открыть рейтинг
+function openRating(){
   document.getElementById("ratingModal").classList.remove("hidden");
   loadLeaderboard();
 }
 
-// API
+// ===== API =====
+
 const API = "https://snake-server-5swh.onrender.com";
 
-function sendScore(score) {
+function sendScore(score){
   fetch(API + "/score", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ user_id, name: playerName, score, avatar })
-  });
+    body: JSON.stringify({
+      user_id,
+      name: playerName,
+      score,
+      avatar
+    })
+  }).catch(()=>{});
 }
 
-function loadLeaderboard() {
+function loadLeaderboard(){
   fetch(API + "/scores")
     .then(res => res.json())
     .then(data => {
@@ -50,40 +77,90 @@ function loadLeaderboard() {
       const div = document.getElementById("ratingList");
       div.innerHTML = "";
 
-      data.forEach((p, i) => {
-        let cls = i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
+      data.forEach((p,i)=>{
+
+        let cls = "";
+        if(i===0) cls="gold";
+        else if(i===1) cls="silver";
+        else if(i===2) cls="bronze";
 
         div.innerHTML += `
         <div class="player ${cls}">
           <div class="player-left">
-            <img class="avatar" src="${p.avatar || 'https://ui-avatars.com/api/?name='+p.name}">
+            <img class="avatar"
+              src="${p.avatar || 'https://ui-avatars.com/api/?name='+p.name}">
             <span>#${i+1} ${p.name}</span>
           </div>
           <span>${p.score}</span>
-        </div>`;
+        </div>
+        `;
       });
-    });
+    })
+    .catch(()=>{});
 }
 
-// GAME
+// ===== GAME =====
+
 function startGame(){
   snake = [{x:10,y:10}];
   dir = {x:1,y:0};
   food = randomFood();
   score = 0;
+  speed = 170;
+
+  shake = 0;
+  flash = 0;
+
+  document.getElementById("score").innerText = score;
+
+  started = true;
 
   clearInterval(gameLoop);
-  gameLoop = setInterval(update, 150);
+  gameLoop = setInterval(update, speed);
 }
 
+// еда
 function randomFood(){
-  return {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+  return {
+    x: Math.floor(Math.random()*20),
+    y: Math.floor(Math.random()*20)
+  };
 }
 
-function update(){
-  let head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+// смерть
+function die(){
+  clearInterval(gameLoop);
+  started = false;
 
-  if(head.x<0||head.y<0||head.x>=20||head.y>=20) return die();
+  shake = 20;
+  flash = 1;
+
+  dieSound.currentTime = 0;
+  dieSound.play().catch(()=>{});
+
+  vibrate([200,100,200]);
+
+  document.body.classList.add("shake");
+  setTimeout(()=> document.body.classList.remove("shake"), 400);
+
+  sendScore(score);
+
+  setTimeout(()=>{
+    openRating();
+    document.getElementById("menu").style.display = "flex";
+  }, 400);
+}
+
+// логика
+function update(){
+  let head = {
+    x: snake[0].x + dir.x,
+    y: snake[0].y + dir.y
+  };
+
+  if(head.x<0 || head.y<0 || head.x>=20 || head.y>=20){
+    return die();
+  }
 
   for(let s of snake){
     if(s.x===head.x && s.y===head.y) return die();
@@ -95,59 +172,105 @@ function update(){
     food = randomFood();
     score++;
 
+    eatSound.currentTime = 0;
+    eatSound.play();
+
+    vibrate(50);
+
+    if(speed > 80){
+      speed -= 4;
+      clearInterval(gameLoop);
+      gameLoop = setInterval(update, speed);
+    }
+
     if(score > best){
       best = score;
       localStorage.setItem("snake_best", best);
       document.getElementById("best").innerText = best;
     }
 
-  } else snake.pop();
+  } else {
+    snake.pop();
+  }
 
   draw();
 }
 
-function die(){
-  clearInterval(gameLoop);
-  sendScore(score);
-  openRating();
-  document.getElementById("menu").style.display = "flex";
-}
-
+// 🎨 КРАСИВАЯ РИСОВКА
 function draw(){
+  ctx.save();
+
+  if(shake > 0){
+    ctx.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);
+    shake--;
+  }
+
   ctx.fillStyle = "#1e3a5f";
   ctx.fillRect(0,0,400,400);
 
+  // 🍎 яблоко (КРУГ)
   ctx.fillStyle = "red";
-  ctx.fillRect(food.x*20, food.y*20, 20,20);
+  ctx.beginPath();
+  ctx.arc(food.x*20+10, food.y*20+10, 8, 0, Math.PI*2);
+  ctx.fill();
 
-  ctx.fillStyle = "#00ff88";
-  snake.forEach(s=>{
-    ctx.fillRect(s.x*20, s.y*20, 20,20);
-  });
+  ctx.fillStyle = "green";
+  ctx.fillRect(food.x*20+9, food.y*20+2, 3, 6);
+
+  // 🐍 змейка SLITHER
+  for(let i = snake.length - 1; i >= 0; i--){
+    let s = snake[i];
+
+    let wave = Math.sin((Date.now()/100) + i) * 2;
+
+    let x = s.x * 20 + 10 + wave;
+    let y = s.y * 20 + 10;
+
+    let radius = 10 - i * 0.2;
+    if(radius < 5) radius = 5;
+
+    let gradient = ctx.createRadialGradient(x, y, 2, x, y, radius);
+    gradient.addColorStop(0, "#00ff88");
+    gradient.addColorStop(1, "#007744");
+
+    ctx.fillStyle = gradient;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // 👀 глаза
+  let head = snake[0];
+  ctx.fillStyle = "black";
+  ctx.beginPath();
+  ctx.arc(head.x*20+6, head.y*20+8, 2, 0, Math.PI*2);
+  ctx.arc(head.x*20+14, head.y*20+8, 2, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+
+  if(flash > 0){
+    ctx.fillStyle = `rgba(255,255,255,${flash})`;
+    ctx.fillRect(0,0,400,400);
+    flash -= 0.05;
+  }
 
   document.getElementById("score").innerText = score;
 }
 
-// controls
+// управление
 document.addEventListener("keydown", e=>{
-  if(e.key==="ArrowUp") dir={x:0,y:-1};
-  if(e.key==="ArrowDown") dir={x:0,y:1};
-  if(e.key==="ArrowLeft") dir={x:-1,y:0};
-  if(e.key==="ArrowRight") dir={x:1,y:0};
+  if(!started) return;
+
+  if(e.key==="ArrowUp" && dir.y!==1) dir={x:0,y:-1};
+  if(e.key==="ArrowDown" && dir.y!==-1) dir={x:0,y:1};
+  if(e.key==="ArrowLeft" && dir.x!==1) dir={x:-1,y:0};
+  if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
 
+// кнопка
 document.getElementById("startBtn").onclick = ()=>{
   document.getElementById("menu").style.display = "none";
   startGame();
 };
-
-// фикс кнопки ТОП
-window.addEventListener("load", () => {
-  const topBtn = document.getElementById("topBtn");
-
-  if(topBtn){
-    topBtn.onclick = () => {
-      openRating();
-    };
-  }
-});
