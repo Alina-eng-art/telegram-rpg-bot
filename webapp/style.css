@@ -1,128 +1,92 @@
-/* кнопка ТОП */
-#openRatingBtn {
-  margin-top: 15px;
-  padding: 10px 25px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(90deg, #00ffcc, #00ff88);
-  color: black;
-  font-weight: bold;
-}
-
-/* ===== МОДАЛКА ===== */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.9);
+/* профиль */
+#profile {
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 999;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
-.hidden {
-  display: none;
+#avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #00ffcc;
 }
+
+#username {
+  font-weight: bold;
+  color: #00ffcc;
+}
+
+/* рейтинг карточки */
+.player {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+}
+
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.gold { background: linear-gradient(90deg, gold, orange); color:black; }
+.silver { background: linear-gradient(90deg, #ccc, #888); }
+.bronze { background: linear-gradient(90deg, #ff8844, #aa4400); }
+
 
 .modal-content {
-  width: 90%;
-  max-width: 360px;
-  background: linear-gradient(180deg, #0b1a2a, #050d16);
+  background: linear-gradient(180deg, #0b1a2a, #07101a);
   border-radius: 20px;
   padding: 15px;
   box-shadow: 0 0 30px #00ffcc;
 }
 
-/* header */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h2 {
-  color: #00ffcc;
-}
-
-.modal-header button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 18px;
-}
-
-/* имя */
-#nameBlock {
-  text-align: center;
-  margin: 10px 0;
-}
-
-#playerName {
-  width: 80%;
-  padding: 8px;
-  border-radius: 10px;
-  border: none;
-  margin-bottom: 10px;
-}
-
-#saveName {
-  padding: 8px 20px;
-  border: none;
-  border-radius: 10px;
-  background: #00ff88;
-}
-
-/* ===== КАРТОЧКИ КАК В NEON ===== */
 .player {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 12px;
-  margin: 8px 0;
+  margin: 10px 0;
   border-radius: 16px;
   background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
   transition: 0.3s;
 }
 
-/* аватар */
-.avatar {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, #00ffcc, #ff00ff);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 10px;
+.player:hover {
+  transform: scale(1.03);
 }
 
-/* имя блок */
 .player-left {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-/* очки */
-.score-val {
-  color: #00ffcc;
+.avatar-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #00ffcc;
+}
+
+.score-num {
   font-weight: bold;
+  color: #00ffcc;
 }
 
-/* ТОП 3 */
-.player.gold {
-  background: linear-gradient(90deg, #ffd700, #ff9900);
-  color: black;
-}
-
-.player.silver {
-  background: linear-gradient(90deg, #ccc, #888);
-}
-
-.player.bronze {
-  background: linear-gradient(90deg, #ff8844, #aa4400);
-}
+/* топ */
+.gold { background: linear-gradient(90deg, gold, orange); color:black; }
+.silver { background: linear-gradient(90deg, #ccc, #888); }
+.bronze { background: linear-gradient(90deg, #ff8844, #aa4400); }

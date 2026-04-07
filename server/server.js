@@ -1,59 +1,41 @@
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
+const express = require("express");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = 3000;
+// 🧠 вместо массива — объект
+let players = {};
 
-// 📁 файл базы
-const DB_FILE = 'scores.json';
+// сохранить скор
+app.post("/score", (req, res) => {
+  const { user_id, name, score, avatar } = req.body;
 
-// если нет файла → создаём
-if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(DB_FILE, JSON.stringify([]));
-}
+  if (!user_id) return res.sendStatus(400);
 
-// 🏠 главная страница
-app.get('/', (req, res) => {
-  res.send('🐍 Snake Server работает!');
-});
-
-// 🏆 получить топ игроков
-app.get('/scores', (req, res) => {
-  const data = JSON.parse(fs.readFileSync(DB_FILE));
-  
-  const top = data
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
-
-  res.json(top);
-});
-
-// 💾 сохранить результат
-app.post('/score', (req, res) => {
-  const { name, score } = req.body;
-
-  if (!name || !score) {
-    return res.status(400).json({ error: 'bad data' });
+  // если игрок уже есть
+  if (players[user_id]) {
+    // обновляем только если рекорд выше
+    if (score > players[user_id].score) {
+      players[user_id].score = score;
+    }
+  } else {
+    players[user_id] = { name, score, avatar };
   }
 
-  const data = JSON.parse(fs.readFileSync(DB_FILE));
-
-  data.push({
-    name,
-    score,
-    date: Date.now()
-  });
-
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-
-  res.json({ success: true });
+  res.sendStatus(200);
 });
 
-// 🚀 запуск сервера
-app.listen(PORT, () => {
-  console.log(`🚀 Server started: http://localhost:${PORT}`);
+// получить рейтинг
+app.get("/scores", (req, res) => {
+  const sorted = Object.values(players)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 50);
+
+  res.json(sorted);
+});
+
+app.listen(3000, () => {
+  console.log("🔥 Server started on port 3000");
 });
