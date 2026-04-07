@@ -12,15 +12,15 @@ function attack() {
 
   if (enemyHp <= 0) {
     enemyHp = 50;
-    document.getElementById('log').innerText = "👹 Враг побежден!";
+    document.getElementById('log').innerText = "👹 Ворога переможено!";
   } else {
     hp -= 5;
-    document.getElementById('log').innerText = "⚔️ Бой идет!";
+    document.getElementById('log').innerText = "⚔️ Бій триває!";
   }
 
   if (hp <= 0) {
     hp = 100;
-    document.getElementById('log').innerText = "💀 Ты умер и возродился!";
+    document.getElementById('log').innerText = "💀 Ти загинув і відродився!";
   }
 
   update();
@@ -30,7 +30,7 @@ function heal() {
   hp += 10;
   if (hp > 100) hp = 100;
 
-  document.getElementById('log').innerText = "❤️ Ты вылечился!";
+  document.getElementById('log').innerText = "❤️ Ти вилікувався!";
   update();
 }
 

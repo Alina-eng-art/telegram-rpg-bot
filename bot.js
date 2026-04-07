@@ -1,8 +1,8 @@
 const { Telegraf, Markup } = require('telegraf')
 
-const bot = new Telegraf('8629708298:AAHo4o10gYQKngSegE59gTvEY0WPOlmbOWU')
+const bot = new Telegraf('ТВОЙ_ТОКЕН')
 
-// ===== ИГРОКИ =====
+// ===== ГРАВЦІ =====
 const players = {}
 const enemies = {}
 
@@ -27,38 +27,23 @@ function createEnemy(level) {
   }
 }
 
-// ===== START =====
+// ===== СТАРТ =====
 bot.start((ctx) => {
   const player = getPlayer(ctx.from.id)
-  enemies[ctx.from.id] = createEnemy(player.level)
 
   ctx.reply(
-    `🎮 Добро пожаловать!
+    `🎮 Ласкаво просимо в RPG!
 
-Выбери режим игры 👇`,
+Обери дію 👇`,
     Markup.keyboard([
-      ['🎮 Играть (Block Blast)'],
-      ['⚔️ RPG режим'],
-      ['📊 Статус']
+      ['⚔️ Почати гру'],
+      ['📊 Статистика']
     ]).resize()
-  )    
-})
-
-// ===== WEB APP КНОПКА =====
-bot.hears('🎮 Играть (Block Blast)', (ctx) => {
-  ctx.reply(
-    'Жми играть 👇',
-    Markup.inlineKeyboard([
-      Markup.button.webApp(
-        '▶️ PLAY',
-        'https://ТВОЯ-ССЫЛКА.vercel.app'
-      )
-    ])
   )
 })
 
-// ===== RPG START =====
-bot.hears('⚔️ RPG режим', (ctx) => {
+// ===== ПОЧАТИ RPG =====
+bot.hears('⚔️ Почати гру', (ctx) => {
   const player = getPlayer(ctx.from.id)
   enemies[ctx.from.id] = createEnemy(player.level)
 
@@ -67,21 +52,21 @@ bot.hears('⚔️ RPG режим', (ctx) => {
 
 ❤️ HP: ${player.hp}
 ⚔️ Атака: ${player.attack}
-⭐ Уровень: ${player.level}`,
+⭐ Рівень: ${player.level}`,
     Markup.keyboard([
-      ['⚔️ Атаковать'],
-      ['❤️ Лечиться', '📊 Статус'],
+      ['⚔️ Атакувати'],
+      ['❤️ Лікуватись', '📊 Статистика'],
       ['⬅️ Назад']
     ]).resize()
   )
 })
 
 // ===== АТАКА =====
-bot.hears('⚔️ Атаковать', (ctx) => {
+bot.hears('⚔️ Атакувати', (ctx) => {
   const player = getPlayer(ctx.from.id)
   const enemy = enemies[ctx.from.id]
 
-  if (!enemy) return ctx.reply('Нажми RPG режим')
+  if (!enemy) return ctx.reply('Натисни "Почати гру"')
 
   enemy.hp -= player.attack
 
@@ -95,13 +80,13 @@ bot.hears('⚔️ Атаковать', (ctx) => {
       player.attack += 2
       player.maxHp += 10
       player.hp = player.maxHp
-      ctx.reply('🎉 УРОВЕНЬ ПОВЫШЕН!')
+      ctx.reply('🎉 РІВЕНЬ ПІДВИЩЕНО!')
     }
 
     enemies[ctx.from.id] = createEnemy(player.level)
 
-    return ctx.reply(`👹 Враг убит!
-+10 EXP
+    return ctx.reply(`👹 Ворог переможений!
++10 досвіду
 +5 золота`)
   }
 
@@ -112,30 +97,30 @@ bot.hears('⚔️ Атаковать', (ctx) => {
     player.gold = Math.max(0, player.gold - 5)
     enemies[ctx.from.id] = createEnemy(player.level)
 
-    return ctx.reply('💀 Ты умер... -5 золота')
+    return ctx.reply('💀 Ти загинув... -5 золота')
   }
 
-  ctx.reply(`⚔️ Бой
+  ctx.reply(`⚔️ Бій!
 
-❤️ Твоё HP: ${player.hp}
-👹 HP врага: ${enemy.hp}`)
+❤️ Твоє HP: ${player.hp}
+👹 HP ворога: ${enemy.hp}`)
 })
 
-// ===== ЛЕЧЕНИЕ =====
-bot.hears('❤️ Лечиться', (ctx) => {
+// ===== ЛІКУВАННЯ =====
+bot.hears('❤️ Лікуватись', (ctx) => {
   const player = getPlayer(ctx.from.id)
 
   player.hp += 20
   if (player.hp > player.maxHp) player.hp = player.maxHp
 
-  ctx.reply(`❤️ Ты вылечился: ${player.hp}`)
+  ctx.reply(`❤️ Ти відновив HP: ${player.hp}`)
 })
 
-// ===== СТАТУС =====
-bot.hears('📊 Статус', (ctx) => {
+// ===== СТАТИСТИКА =====
+bot.hears('📊 Статистика', (ctx) => {
   const player = getPlayer(ctx.from.id)
 
-  ctx.reply(`📊 Статистика
+  ctx.reply(`📊 Твій герой:
 
 ❤️ ${player.hp}/${player.maxHp}
 ⚔️ ${player.attack}
@@ -147,11 +132,10 @@ bot.hears('📊 Статус', (ctx) => {
 // ===== НАЗАД =====
 bot.hears('⬅️ Назад', (ctx) => {
   ctx.reply(
-    'Главное меню',
+    'Головне меню',
     Markup.keyboard([
-      ['🎮 Играть (Block Blast)'],
-      ['⚔️ RPG режим'],
-      ['📊 Статус']
+      ['⚔️ Почати гру'],
+      ['📊 Статистика']
     ]).resize()
   )
 })
@@ -159,4 +143,4 @@ bot.hears('⬅️ Назад', (ctx) => {
 // ===== ЗАПУСК =====
 bot.launch()
 
-console.log('🤖 Бот запущен!')
+console.log('🤖 RPG бот запущено!')
