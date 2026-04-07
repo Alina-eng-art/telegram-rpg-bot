@@ -1,71 +1,88 @@
-/* профиль */
-#profile {
+body {
+  margin: 0;
+  background: #0b1a2a;
+  font-family: Arial;
+  color: white;
+}
+
+/* меню */
+#menu {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #0b1a2a, #02060d);
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+}
+
+.menu-buttons {
+  display: flex;
   gap: 10px;
-  margin-bottom: 15px;
 }
 
-#avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid #00ffcc;
-}
-
-#username {
+button {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 12px;
+  background: #00ff88;
   font-weight: bold;
-  color: #00ffcc;
 }
 
-/* рейтинг карточки */
-.player {
+/* игра */
+.game {
+  text-align: center;
+  margin-top: 20px;
+}
+
+canvas {
+  width: 90vw;
+  max-width: 420px;
+  height: 90vw;
+  background: #1e3a5f;
+  border-radius: 20px;
+}
+
+/* модалка */
+.modal {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 16px;
-  background: rgba(255,255,255,0.05);
+  justify-content: center;
 }
 
-.player-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.hidden {
+  display: none;
 }
-
-.avatar-small {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-}
-
-.gold { background: linear-gradient(90deg, gold, orange); color:black; }
-.silver { background: linear-gradient(90deg, #ccc, #888); }
-.bronze { background: linear-gradient(90deg, #ff8844, #aa4400); }
-
 
 .modal-content {
-  background: linear-gradient(180deg, #0b1a2a, #07101a);
+  width: 90%;
+  max-width: 360px;
+  background: #07101a;
   border-radius: 20px;
   padding: 15px;
-  box-shadow: 0 0 30px #00ffcc;
+  box-shadow: 0 0 20px #00ff88;
 }
 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* игрок */
 .player {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 16px;
   background: rgba(255,255,255,0.05);
-  transition: 0.3s;
-}
-
-.player:hover {
-  transform: scale(1.03);
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 0;
 }
 
 .player-left {
@@ -74,19 +91,12 @@
   gap: 10px;
 }
 
-.avatar-small {
-  width: 36px;
-  height: 36px;
+.avatar {
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
-  border: 2px solid #00ffcc;
 }
 
-.score-num {
-  font-weight: bold;
-  color: #00ffcc;
-}
-
-/* топ */
-.gold { background: linear-gradient(90deg, gold, orange); color:black; }
-.silver { background: linear-gradient(90deg, #ccc, #888); }
+.gold { background: linear-gradient(90deg, gold, orange); color: black; }
+.silver { background: linear-gradient(90deg, #aaa, #666); }
 .bronze { background: linear-gradient(90deg, #ff8844, #aa4400); }

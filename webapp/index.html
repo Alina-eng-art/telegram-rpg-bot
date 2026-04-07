@@ -2,42 +2,34 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Snake</title>
-
-<!-- Telegram API -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <link rel="stylesheet" href="style.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
+<!-- МЕНЮ -->
 <div id="menu">
-
-  <!-- 💎 ПРОФИЛЬ -->
-  <div id="profile">
-    <img id="avatar">
-    <div>
-      <div id="username"></div>
-      <div>Рекорд: <span id="best">0</span></div>
-    </div>
-  </div>
-
   <h1>🐍 SNAKE</h1>
 
-  <button id="startBtn">PLAY</button>
-  <button id="openRatingBtn">🏆 РЕЙТИНГ</button>
-
+  <div class="menu-buttons">
+    <button id="startBtn">▶ PLAY</button>
+    <button id="topBtn">🏆 ТОП</button>
+  </div>
 </div>
 
+<!-- ИГРА -->
 <div class="game">
   <div class="score">
-    Score: <span id="score">0</span>
+    Score: <span id="score">0</span> |
+    Best: <span id="best">0</span>
   </div>
+
   <canvas id="game"></canvas>
 </div>
 
-<!-- рейтинг -->
+<!-- РЕЙТИНГ -->
 <div id="ratingModal" class="modal hidden">
   <div class="modal-content">
 
