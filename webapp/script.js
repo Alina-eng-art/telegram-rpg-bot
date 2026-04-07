@@ -16,8 +16,13 @@ document.getElementById('best').innerText = best;
 
 let gameOver = false;
 
-// 🔊 звук (без лагов)
+// 💥 эффект
+let shake = 0;
+let flash = 0;
+
+// 🔊 звук
 const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+const dieSound = new Audio("https://actions.google.com/sounds/v1/explosions/explosion.ogg");
 
 // 🍎 еда
 function randomFood(){
@@ -28,50 +33,45 @@ function randomFood(){
 }
 
 //
-// 📱 СВАЙП (ФИКС — НЕ ЗАКРЫВАЕТ TELEGRAM)
+// 📱 свайп
 //
-let startX = 0;
-let startY = 0;
+let startX = 0, startY = 0;
 
 canvas.addEventListener("touchstart", e => {
-  e.preventDefault(); // 🔥 ВАЖНО
-  const t = e.touches[0];
+  if(gameOver) return restart();
+  e.preventDefault();
+  let t = e.touches[0];
   startX = t.clientX;
   startY = t.clientY;
 });
 
-canvas.addEventListener("touchmove", e => {
-  e.preventDefault(); // 🔥 фикс закрытия
-});
-
 canvas.addEventListener("touchend", e => {
   e.preventDefault();
-
-  const t = e.changedTouches[0];
+  let t = e.changedTouches[0];
   let dx = t.clientX - startX;
   let dy = t.clientY - startY;
 
-  if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 0 && dir.x !== -1) dir = {x:1,y:0};
-    else if (dx < 0 && dir.x !== 1) dir = {x:-1,y:0};
+  if(Math.abs(dx) > Math.abs(dy)){
+    if(dx>0 && dir.x!==-1) dir={x:1,y:0};
+    if(dx<0 && dir.x!==1) dir={x:-1,y:0};
   } else {
-    if (dy > 0 && dir.y !== -1) dir = {x:0,y:1};
-    else if (dy < 0 && dir.y !== 1) dir = {x:0,y:-1};
+    if(dy>0 && dir.y!==-1) dir={x:0,y:1};
+    if(dy<0 && dir.y!==1) dir={x:0,y:-1};
   }
 });
 
 //
-// 🖥 КЛАВИАТУРА (СТРЕЛКИ)
+// 🖥 клавиатура
 //
-document.addEventListener("keydown", e => {
-  if(e.key === "ArrowUp" && dir.y !== 1) dir = {x:0,y:-1};
-  if(e.key === "ArrowDown" && dir.y !== -1) dir = {x:0,y:1};
-  if(e.key === "ArrowLeft" && dir.x !== 1) dir = {x:-1,y:0};
-  if(e.key === "ArrowRight" && dir.x !== -1) dir = {x:1,y:0};
+document.addEventListener("keydown", e=>{
+  if(e.key==="ArrowUp" && dir.y!==1) dir={x:0,y:-1};
+  if(e.key==="ArrowDown" && dir.y!==-1) dir={x:0,y:1};
+  if(e.key==="ArrowLeft" && dir.x!==1) dir={x:-1,y:0};
+  if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
 
 //
-// 🔁 ЛОГИКА
+// 🔁 логика
 //
 function update(){
   if(gameOver) return;
@@ -112,80 +112,111 @@ function update(){
 }
 
 //
-// 🎨 РИСОВКА (КРАСИВО)
+// 🎨 рисовка
 //
 function draw(){
-  // фон
-  ctx.fillStyle = "#0b0b0b";
-  ctx.fillRect(0,0,400,400);
+  ctx.save();
 
-  // сетка
-  ctx.strokeStyle = "#111";
-  for(let i=0;i<400;i+=20){
-    ctx.beginPath();
-    ctx.moveTo(i,0);
-    ctx.lineTo(i,400);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0,i);
-    ctx.lineTo(400,i);
-    ctx.stroke();
+  // 💥 ТРЯСКА
+  if(shake > 0){
+    let dx = (Math.random()-0.5)*10;
+    let dy = (Math.random()-0.5)*10;
+    ctx.translate(dx, dy);
+    shake--;
   }
 
-  // 🍎 яблоко (красивое)
+  ctx.clearRect(0,0,400,400);
+
+  // фон
+  ctx.fillStyle = "#5dbb63";
+  ctx.fillRect(0,0,400,400);
+
+  // 🍎 яблоко
   ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.arc(food.x*20+10, food.y*20+10, 8, 0, Math.PI*2);
   ctx.fill();
 
-  // 🐍 змея (градиент)
-  snake.forEach((s,i)=>{
-    let size = 10 - i*0.2;
-    if(size < 5) size = 5;
+  ctx.fillStyle = "green";
+  ctx.fillRect(food.x*20+10, food.y*20+2, 3, 6);
 
-    ctx.fillStyle = i === 0 ? "#00ffcc" : "#00aa88";
+  // 🐍 змея
+  snake.forEach((s,i)=>{
+    let r = 10 - i*0.2;
+    if(r < 5) r = 5;
+
+    ctx.fillStyle = i===0 ? "#2e7d32" : "#4caf50";
 
     ctx.beginPath();
-    ctx.arc(s.x*20+10, s.y*20+10, size, 0, Math.PI*2);
+    ctx.arc(s.x*20+10, s.y*20+10, r, 0, Math.PI*2);
     ctx.fill();
   });
+
+  // 👀 глаза
+  let head = snake[0];
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(head.x*20+6, head.y*20+8, 2, 0, Math.PI*2);
+  ctx.arc(head.x*20+14, head.y*20+8, 2, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // ⚡ ВСПЫШКА
+  if(flash > 0){
+    ctx.fillStyle = `rgba(255,255,255,${flash})`;
+    ctx.fillRect(0,0,400,400);
+    flash -= 0.05;
+  }
 
   // текст
   document.getElementById('score').innerText = score;
 
-  // 💀 GAME OVER UI
+  // GAME OVER
   if(gameOver){
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(0,0,400,400);
 
     ctx.fillStyle = "white";
-    ctx.font = "30px Arial";
-    ctx.fillText("GAME OVER", 100, 180);
+    ctx.font = "28px Arial";
+    ctx.fillText("GAME OVER", 110, 180);
 
-    ctx.font = "18px Arial";
-    ctx.fillText("Tap to restart", 120, 220);
+    ctx.font = "16px Arial";
+    ctx.fillText("Tap to restart", 130, 220);
   }
 }
 
 //
-// 💀 СМЕРТЬ (БЕЗ ALERT)
+// 💀 смерть
 //
 function die(){
   gameOver = true;
+
+  // 💥 эффекты
+  shake = 15;
+  flash = 0.8;
+
+  dieSound.currentTime = 0;
+  dieSound.play();
 }
 
 //
-// 🔄 РЕСТАРТ
+// 🔄 рестарт
 //
-canvas.addEventListener("click", () => {
-  if(gameOver){
-    snake = [{x:10,y:10}];
-    dir = {x:1,y:0};
-    score = 0;
-    food = randomFood();
-    gameOver = false;
-  }
+function restart(){
+  snake = [{x:10,y:10}];
+  dir = {x:1,y:0};
+  score = 0;
+  food = randomFood();
+  gameOver = false;
+}
+
+canvas.addEventListener("click", ()=>{
+  if(gameOver) restart();
+});
+
+canvas.addEventListener("touchstart", ()=>{
+  if(gameOver) restart();
 });
 
 //
@@ -194,7 +225,7 @@ canvas.addEventListener("click", () => {
 function loop(){
   update();
   draw();
-  setTimeout(loop, 120);
+  requestAnimationFrame(loop);
 }
 
 loop();
