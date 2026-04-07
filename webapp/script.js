@@ -50,18 +50,6 @@ function die(){
   dieSound.currentTime = 0;
   dieSound.play();
 
-  // рекорд
-  if(score > best){
-    best = score;
-    localStorage.setItem("snake_best", best);
-    document.getElementById("best").innerText = best;
-  }
-
-  // вспышка
-  document.body.style.background = "white";
-  setTimeout(()=> document.body.style.background="#0b1a2a", 100);
-
-  // показать меню
   document.getElementById("menu").style.display = "flex";
 }
 
@@ -72,12 +60,10 @@ function update(){
     y: snake[0].y + dir.y
   };
 
-  // стены
   if(head.x<0 || head.y<0 || head.x>=20 || head.y>=20){
     return die();
   }
 
-  // в себя
   for(let s of snake){
     if(s.x===head.x && s.y===head.y) return die();
   }
@@ -87,16 +73,20 @@ function update(){
   if(head.x===food.x && head.y===food.y){
     food = randomFood();
     score++;
-    document.getElementById("score").innerText = score;
 
     eatSound.currentTime = 0;
     eatSound.play();
 
-    // ⚡ ускорение
     if(speed > 90){
       speed -= 5;
       clearInterval(gameLoop);
       gameLoop = setInterval(update, speed);
+    }
+
+    if(score > best){
+      best = score;
+      localStorage.setItem("snake_best", best);
+      document.getElementById("best").innerText = best;
     }
 
   } else {
@@ -106,52 +96,59 @@ function update(){
   draw();
 }
 
-// 🎨 рисовка
+// 🎨 КРАСИВАЯ РИСОВКА
 function draw(){
   ctx.fillStyle = "#1e3a5f";
   ctx.fillRect(0,0,400,400);
 
-  // яблоко
+  // 🍎 яблоко (реалистичнее)
   ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.arc(food.x*20+10, food.y*20+10, 8, 0, Math.PI*2);
   ctx.fill();
 
-  // змейка
+  ctx.fillStyle = "green";
+  ctx.fillRect(food.x*20+9, food.y*20+2, 3, 6);
+
+  // 🐍 змея (плавная)
   snake.forEach((s,i)=>{
+    let r = 10 - i*0.2;
+    if(r < 5) r = 5;
+
     ctx.fillStyle = i===0 ? "#00ff88" : "#00cc66";
-    ctx.fillRect(s.x*20, s.y*20, 18, 18);
+
+    ctx.beginPath();
+    ctx.arc(s.x*20+10, s.y*20+10, r, 0, Math.PI*2);
+    ctx.fill();
   });
+
+  // глаза
+  let head = snake[0];
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.arc(head.x*20+6, head.y*20+8, 2, 0, Math.PI*2);
+  ctx.arc(head.x*20+14, head.y*20+8, 2, 0, Math.PI*2);
+  ctx.fill();
+
+  document.getElementById("score").innerText = score;
 }
 
-// 📱 СУПЕР ВАЖНО — БЛОК СКРОЛЛА
-document.body.addEventListener("touchmove", e => {
-  e.preventDefault();
-}, { passive: false });
+// 🎮 ДЖОЙСТИК
+document.getElementById("up").onclick = () => {
+  if(dir.y !== 1) dir = {x:0,y:-1};
+};
 
-// 📱 свайпы (работают нормально)
-let startX=0,startY=0;
+document.getElementById("down").onclick = () => {
+  if(dir.y !== -1) dir = {x:0,y:1};
+};
 
-canvas.addEventListener("touchstart", e=>{
-  let t = e.touches[0];
-  startX = t.clientX;
-  startY = t.clientY;
-});
+document.getElementById("left").onclick = () => {
+  if(dir.x !== 1) dir = {x:-1,y:0};
+};
 
-canvas.addEventListener("touchend", e=>{
-  let t = e.changedTouches[0];
-
-  let dx = t.clientX - startX;
-  let dy = t.clientY - startY;
-
-  if(Math.abs(dx) > Math.abs(dy)){
-    if(dx>0 && dir.x!==-1) dir={x:1,y:0};
-    if(dx<0 && dir.x!==1) dir={x:-1,y:0};
-  } else {
-    if(dy>0 && dir.y!==-1) dir={x:0,y:1};
-    if(dy<0 && dir.y!==1) dir={x:0,y:-1};
-  }
-});
+document.getElementById("right").onclick = () => {
+  if(dir.x !== -1) dir = {x:1,y:0};
+};
 
 // 🖥 клавиатура
 document.addEventListener("keydown", e=>{
@@ -163,7 +160,7 @@ document.addEventListener("keydown", e=>{
   if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
 
-// ▶️ кнопка
+// ▶️ старт
 document.getElementById("startBtn").onclick = ()=>{
   document.getElementById("menu").style.display = "none";
   startGame();

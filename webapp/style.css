@@ -1,7 +1,5 @@
-/* ❗ УБИРАЕМ СКРОЛЛ И ЖЕСТЫ */
 html, body {
   margin: 0;
-  padding: 0;
   overflow: hidden;
   touch-action: none;
   background: #0b1a2a;
@@ -9,21 +7,18 @@ html, body {
   color: white;
 }
 
-/* центр */
 .game {
-  width: 100vw;
-  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100vh;
 }
 
 canvas {
   width: 90vw;
   max-width: 420px;
   height: 90vw;
-  max-height: 420px;
   background: #1e3a5f;
   border-radius: 20px;
 }
@@ -41,22 +36,25 @@ canvas {
   z-index: 10;
 }
 
-#menu h1 {
-  font-size: 40px;
-  margin-bottom: 20px;
-}
-
 #startBtn {
   padding: 15px 40px;
   font-size: 20px;
-  border: none;
   border-radius: 12px;
+  border: none;
   background: #00ff88;
-  color: black;
-  font-weight: bold;
 }
 
-/* счет */
-.score {
-  margin-bottom: 10px;
+/* 🎮 джойстик */
+.controls {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.controls button {
+  font-size: 22px;
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 10px;
+  border: none;
+  background: #00ff88;
 }
