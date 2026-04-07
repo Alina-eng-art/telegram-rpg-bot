@@ -10,26 +10,27 @@ let snake, dir, food, score, best, speed;
 let gameLoop;
 let started = false;
 
-// 💥 эффекты
+// эффекты
 let shake = 0;
 let flash = 0;
 
-// 🔊 звуки
+// звуки
 const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 const dieSound = new Audio("https://actions.google.com/sounds/v1/explosions/explosion.ogg");
 
-// 📳 вибрация
+// вибрация
 function vibrate(pattern){
   if(navigator.vibrate){
     navigator.vibrate(pattern);
   }
 }
 
-// 🏆 рекорд
+// рекорд
 best = localStorage.getItem("snake_best") || 0;
 document.getElementById("best").innerText = best;
 
 // ===== РЕЙТИНГ =====
+
 let playerName = localStorage.getItem("snake_name") || "";
 
 // открыть рейтинг
@@ -50,12 +51,20 @@ document.getElementById("closeRating").onclick = ()=>{
   document.getElementById("ratingModal").classList.add("hidden");
 };
 
+// кнопка открыть
+document.getElementById("openRatingBtn").onclick = openRating;
+
 // сохранить имя
 document.getElementById("saveName").onclick = ()=>{
   playerName = document.getElementById("playerName").value;
   localStorage.setItem("snake_name", playerName);
   document.getElementById("nameBlock").style.display = "none";
 };
+
+// генерация аватарки
+function getAvatar(name){
+  return name ? name[0].toUpperCase() : "?";
+}
 
 // отправка
 function sendScore(score){
@@ -71,17 +80,15 @@ function sendScore(score){
   });
 }
 
-// загрузка
+// загрузка рейтинга
 function loadLeaderboard(){
   fetch("https://snake-server-5swh.onrender.com/scores")
     .then(res => res.json())
     .then(data => {
 
-      // старый блок
       const old = document.getElementById("leaderboard");
       old.innerHTML = "<h3>🏆 ТОП</h3>";
 
-      // новый блок
       const div = document.getElementById("ratingList");
       div.innerHTML = "";
 
@@ -89,17 +96,27 @@ function loadLeaderboard(){
 
         old.innerHTML += `${i+1}. ${p.name} — ${p.score}<br>`;
 
+        let placeClass = "";
+        if(i === 0) placeClass = "gold";
+        else if(i === 1) placeClass = "silver";
+        else if(i === 2) placeClass = "bronze";
+
         div.innerHTML += `
-          <div class="player">
-            <span>#${i+1} ${p.name}</span>
-            <span>${p.score}</span>
+          <div class="player ${placeClass}">
+            <div class="player-left">
+              <div class="avatar">${getAvatar(p.name)}</div>
+              <div>#${i+1} ${p.name}</div>
+            </div>
+            <div class="score-val">${p.score}</div>
           </div>
         `;
       });
     });
 }
 
-// ▶️ старт игры
+// ===== ИГРА =====
+
+// старт
 function startGame(){
   snake = [{x:10,y:10}];
   dir = {x:1,y:0};
@@ -118,7 +135,7 @@ function startGame(){
   gameLoop = setInterval(update, speed);
 }
 
-// 🍎 еда
+// еда
 function randomFood(){
   return {
     x: Math.floor(Math.random()*20),
@@ -126,7 +143,7 @@ function randomFood(){
   };
 }
 
-// 💀 смерть
+// смерть
 function die(){
   clearInterval(gameLoop);
   started = false;
@@ -151,7 +168,7 @@ function die(){
   }, 400);
 }
 
-// 🔁 логика
+// логика
 function update(){
   let head = {
     x: snake[0].x + dir.x,
@@ -196,7 +213,7 @@ function update(){
   draw();
 }
 
-// 🎨 рисовка
+// рисовка (slither стиль)
 function draw(){
   ctx.save();
 
@@ -258,11 +275,6 @@ function draw(){
 
   document.getElementById("score").innerText = score;
 }
-
-// 📱 фикс
-document.body.addEventListener("touchmove", e=>{
-  e.preventDefault();
-}, { passive:false });
 
 // свайпы
 let startX=0,startY=0;
