@@ -29,6 +29,76 @@ function vibrate(pattern){
 best = localStorage.getItem("snake_best") || 0;
 document.getElementById("best").innerText = best;
 
+// ===== РЕЙТИНГ =====
+let playerName = localStorage.getItem("snake_name") || "";
+
+// открыть рейтинг
+function openRating(){
+  document.getElementById("ratingModal").classList.remove("hidden");
+
+  if(!playerName){
+    document.getElementById("nameBlock").style.display = "block";
+  } else {
+    document.getElementById("nameBlock").style.display = "none";
+  }
+
+  loadLeaderboard();
+}
+
+// закрыть
+document.getElementById("closeRating").onclick = ()=>{
+  document.getElementById("ratingModal").classList.add("hidden");
+};
+
+// сохранить имя
+document.getElementById("saveName").onclick = ()=>{
+  playerName = document.getElementById("playerName").value;
+  localStorage.setItem("snake_name", playerName);
+  document.getElementById("nameBlock").style.display = "none";
+};
+
+// отправка
+function sendScore(score){
+  if(!playerName){
+    openRating();
+    return;
+  }
+
+  fetch("https://snake-server-5swh.onrender.com/score", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ name: playerName, score })
+  });
+}
+
+// загрузка
+function loadLeaderboard(){
+  fetch("https://snake-server-5swh.onrender.com/scores")
+    .then(res => res.json())
+    .then(data => {
+
+      // старый блок
+      const old = document.getElementById("leaderboard");
+      old.innerHTML = "<h3>🏆 ТОП</h3>";
+
+      // новый блок
+      const div = document.getElementById("ratingList");
+      div.innerHTML = "";
+
+      data.forEach((p,i)=>{
+
+        old.innerHTML += `${i+1}. ${p.name} — ${p.score}<br>`;
+
+        div.innerHTML += `
+          <div class="player">
+            <span>#${i+1} ${p.name}</span>
+            <span>${p.score}</span>
+          </div>
+        `;
+      });
+    });
+}
+
 // ▶️ старт игры
 function startGame(){
   snake = [{x:10,y:10}];
@@ -66,7 +136,6 @@ function die(){
 
   dieSound.pause();
   dieSound.currentTime = 0;
-  dieSound.volume = 1;
   dieSound.play().catch(()=>{});
 
   vibrate([200, 100, 200]);
@@ -75,9 +144,9 @@ function die(){
   setTimeout(()=> document.body.classList.remove("shake"), 400);
 
   sendScore(score);
-  loadLeaderboard();
 
   setTimeout(()=>{
+    openRating();
     document.getElementById("menu").style.display = "flex";
   }, 400);
 }
@@ -127,7 +196,7 @@ function update(){
   draw();
 }
 
-// 🎨 РИСОВКА (УЛУЧШЕННАЯ)
+// 🎨 рисовка
 function draw(){
   ctx.save();
 
@@ -139,7 +208,7 @@ function draw(){
   ctx.fillStyle = "#1e3a5f";
   ctx.fillRect(0,0,400,400);
 
-  // 🍎 яблоко
+  // яблоко
   ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.arc(food.x*20+10, food.y*20+10, 8, 0, Math.PI*2);
@@ -148,11 +217,10 @@ function draw(){
   ctx.fillStyle = "green";
   ctx.fillRect(food.x*20+9, food.y*20+2, 3, 6);
 
-  // 🐍 === SLITHER STYLE ===
+  // змейка
   for(let i = snake.length - 1; i >= 0; i--){
     let s = snake[i];
 
-    // 🌊 волна
     let wave = Math.sin((Date.now()/100) + i) * 2;
 
     let x = s.x * 20 + 10 + wave;
@@ -161,7 +229,6 @@ function draw(){
     let radius = 10 - i * 0.2;
     if(radius < 5) radius = 5;
 
-    // 🎨 градиент
     let gradient = ctx.createRadialGradient(x, y, 2, x, y, radius);
     gradient.addColorStop(0, "#00ff88");
     gradient.addColorStop(1, "#007744");
@@ -173,7 +240,7 @@ function draw(){
     ctx.fill();
   }
 
-  // 👀 глаза (чёрные)
+  // глаза
   let head = snake[0];
   ctx.fillStyle = "black";
   ctx.beginPath();
@@ -231,36 +298,11 @@ document.addEventListener("keydown", e=>{
   if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
 
-// ▶️ кнопка
+// кнопка
 document.getElementById("startBtn").onclick = ()=>{
   document.getElementById("menu").style.display = "none";
   startGame();
 };
 
-// ===== РЕЙТИНГ =====
-
-function sendScore(score){
-  const name = prompt("Твоє ім'я:");
-  if(!name) return;
-
-  fetch("https://snake-server-5swh.onrender.com/score", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, score })
-  });
-}
-
-function loadLeaderboard(){
-  fetch("https://snake-server-5swh.onrender.com/scores")
-    .then(res => res.json())
-    .then(data => {
-      const div = document.getElementById("leaderboard");
-      div.innerHTML = "<h3>🏆 ТОП</h3>";
-
-      data.forEach((p,i)=>{
-        div.innerHTML += `${i+1}. ${p.name} — ${p.score}<br>`;
-      });
-    });
-}
-
+// загрузка
 loadLeaderboard();

@@ -58,17 +58,92 @@ canvas {
   100% { transform: translate(0, 0); }
 }
 
-#leaderboard {
-  margin-top: 20px;
-  font-size: 14px;
+/* ===== 💎 КРАСИВЫЙ РЕЙТИНГ ===== */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.hidden {
+  display: none;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 360px;
+  background: linear-gradient(180deg, #0b1a2a, #07101a);
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 0 25px #00ff88;
+}
+
+/* header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  color: #00ff88;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+}
+
+/* имя */
+#nameBlock {
   text-align: center;
-  max-width: 300px;
+  margin: 10px 0;
+}
+
+#playerName {
+  width: 80%;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+#saveName {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #00ff88;
+}
+
+/* список */
+.player {
   background: rgba(255,255,255,0.05);
   padding: 10px;
   border-radius: 12px;
+  margin: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
 }
 
-#leaderboard h3 {
-  margin: 5px 0;
-  color: #00ff88;
+/* топ 3 */
+.player:nth-child(1) {
+  background: linear-gradient(90deg, gold, orange);
+  color: black;
+}
+.player:nth-child(2) {
+  background: linear-gradient(90deg, #aaa, #666);
+}
+.player:nth-child(3) {
+  background: linear-gradient(90deg, #ff8844, #aa4400);
 }

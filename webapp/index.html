@@ -12,7 +12,7 @@
   <h1>🐍 SNAKE</h1>
   <button id="startBtn">PLAY</button>
 
-  <!-- 🏆 РЕЙТИНГ -->
+  <!-- 🏆 старый рейтинг (оставляем) -->
   <div id="leaderboard"></div>
 </div>
 
@@ -23,6 +23,26 @@
   </div>
 
   <canvas id="game"></canvas>
+</div>
+
+<!-- 💎 НОВЫЙ КРАСИВЫЙ РЕЙТИНГ -->
+<div id="ratingModal" class="modal hidden">
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h2>🏆 РЕЙТИНГ</h2>
+      <button id="closeRating">✖</button>
+    </div>
+
+    <div id="nameBlock">
+      <p>Твоє ім'я:</p>
+      <input id="playerName">
+      <button id="saveName">OK</button>
+    </div>
+
+    <div id="ratingList"></div>
+
+  </div>
 </div>
 
 <script src="script.js"></script>
