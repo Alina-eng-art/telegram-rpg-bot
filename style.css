@@ -9,6 +9,9 @@ html, body {
   touch-action: none;
   overscroll-behavior: none;
   font-family: Arial, sans-serif;
+   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* ===== МЕНЮ ===== */
@@ -49,6 +52,11 @@ button {
   text-align: center;
   margin-top: 20px;
   background: transparent; /* ❌ убираем белый */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+   height: 100vh;
 }
 
 .score {
@@ -64,6 +72,10 @@ canvas {
   background: #1e3a5f;
   border-radius: 20px;
   touch-action: none;
+   width: min(90vw, 400px);
+  height: min(90vw, 400px);
+
+  display: block;
 }
 
 /* ===== МОДАЛКА (РЕЙТИНГ) ===== */
