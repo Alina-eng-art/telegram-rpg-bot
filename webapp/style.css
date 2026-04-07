@@ -53,7 +53,7 @@ canvas {
   top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(0,0,0,0.9);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -160,4 +160,31 @@ canvas {
   60% { transform: translate(-10px, -10px); }
   80% { transform: translate(10px, 10px); }
   100% { transform: translate(0,0); }
+}
+
+/* ===== ФИКС ЦВЕТА ТЕКСТА ===== */
+
+.modal-content {
+  color: white; /* весь текст внутри белый */
+}
+
+.modal-header h2 {
+  color: #00ff88 !important; /* заголовок зелёный */
+}
+
+.player {
+  color: white; /* игроки белые */
+}
+
+.player span {
+  color: white;
+}
+
+.score {
+  color: white;
+}
+
+/* чтобы точно не было чёрного */
+* {
+  -webkit-text-fill-color: unset;
 }
