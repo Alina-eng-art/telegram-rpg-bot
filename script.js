@@ -7,7 +7,7 @@ tg?.disableVerticalSwipes?.();
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// 🔥 фикс размера (чтобы не было пустоты)
+// размер
 function resizeCanvas() {
   const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
   canvas.width = size;
@@ -16,7 +16,6 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// оставляем твою сетку 400х400
 const BASE_SIZE = 400;
 
 // GAME VARS
@@ -30,22 +29,19 @@ let boomPower = 0;
 let boomX = 200;
 let boomY = 200;
 
-// 🔊 звуки
+// звуки
 const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
 const dieSound = new Audio("https://actions.google.com/sounds/v1/explosions/explosion.ogg");
 
-// 🔊 фикс звука
 let soundUnlocked = false;
 function unlockSound(){
   if(soundUnlocked) return;
-
   eatSound.play().then(()=> eatSound.pause()).catch(()=>{});
   dieSound.play().then(()=> dieSound.pause()).catch(()=>{});
-
   soundUnlocked = true;
 }
 
-// 📳 вибрация
+// вибрация
 function vibrate(pattern){
   if(navigator.vibrate){
     navigator.vibrate(pattern);
@@ -62,7 +58,7 @@ const avatar = user.photo_url || "";
 best = localStorage.getItem("snake_best") || 0;
 document.getElementById("best").innerText = best;
 
-// UI INIT
+// UI
 window.addEventListener("load", () => {
 
   document.getElementById("startBtn").addEventListener("click", () => {
@@ -132,14 +128,15 @@ function openRating(){
   loadLeaderboard();
 }
 
-// GAME
+// 🎮 GAME
 function startGame(){
   snake = [{x:10,y:10}];
   dir = {x:1,y:0};
   food = randomFood();
   score = 0;
 
-  speed = 180;
+  // 🔥 МЕДЛЕННЕЕ СТАРТ
+  speed = 200;
 
   flash = 0;
   boomPower = 0;
@@ -215,11 +212,17 @@ function update(){
 
     vibrate(50);
 
-    if(speed > 90){
-      speed -= 3;
-      clearInterval(gameLoop);
-      gameLoop = setInterval(update, speed);
+    // 💚 ПЛАВНОЕ УСКОРЕНИЕ
+    if(speed > 140){
+      speed -= 2;
+    } else if(speed > 110){
+      speed -= 1;
+    } else if(speed > 90){
+      speed -= 0.3;
     }
+
+    clearInterval(gameLoop);
+    gameLoop = setInterval(update, speed);
 
     if(score > best){
       best = score;
@@ -234,14 +237,13 @@ function update(){
   draw();
 }
 
-// 🎨 РИСОВКА (адаптирована под размер canvas)
+// 🎨 РИСОВКА
 function draw(){
   const scale = canvas.width / BASE_SIZE;
 
   ctx.fillStyle = "#1e3a5f";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // яблоко
   ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.arc(food.x*20*scale+10*scale, food.y*20*scale+10*scale, 8*scale, 0, Math.PI*2);
@@ -250,7 +252,6 @@ function draw(){
   ctx.fillStyle = "green";
   ctx.fillRect(food.x*20*scale+9*scale, food.y*20*scale+2*scale, 3*scale, 6*scale);
 
-  // змейка
   for(let i = snake.length - 1; i >= 0; i--){
     let s = snake[i];
 
@@ -273,7 +274,6 @@ function draw(){
     ctx.fill();
   }
 
-  // глаза
   let head = snake[0];
   ctx.fillStyle = "black";
   ctx.beginPath();
@@ -281,7 +281,6 @@ function draw(){
   ctx.arc(head.x*20*scale+14*scale, head.y*20*scale+8*scale, 2*scale, 0, Math.PI*2);
   ctx.fill();
 
-  // BOOM
   if(boomPower > 0){
     ctx.beginPath();
     ctx.arc(boomX*scale, boomY*scale, boomPower * 4 * scale, 0, Math.PI*2);
@@ -290,7 +289,6 @@ function draw(){
     boomPower -= 0.7;
   }
 
-  // flash
   if(flash > 0){
     ctx.fillStyle = `rgba(255,255,255,${flash})`;
     ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -300,7 +298,7 @@ function draw(){
   document.getElementById("score").innerText = score;
 }
 
-// 📱 СВАЙПЫ
+// свайпы
 let startX = 0;
 let startY = 0;
 
