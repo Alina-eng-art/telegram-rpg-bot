@@ -136,7 +136,7 @@ function startGame(){
   score = 0;
 
   // 🔥 МЕДЛЕННЕЕ СТАРТ
-  speed = 200;
+  speed = 240;
 
   flash = 0;
   boomPower = 0;
