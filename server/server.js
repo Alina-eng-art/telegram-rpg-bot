@@ -1,64 +1,326 @@
-const express = require("express");
-const cors = require("cors");
-const fs = require("fs");
+// 🔥 TELEGRAM INIT
+const tg = window.Telegram?.WebApp;
+tg?.expand();
+tg?.disableVerticalSwipes?.();
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+// CANVAS
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-app.use(cors());
-app.use(express.json());
+// размер
+function resizeCanvas() {
+  const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+  canvas.width = size;
+  canvas.height = size;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
-// 📁 файл
-const FILE = "scores.json";
+const BASE_SIZE = 400;
 
-// загрузка
-let players = {};
+// GAME VARS
+let snake, dir, food, score, best;
+let gameLoop;
+let started = false;
 
-if (fs.existsSync(FILE)) {
-  try {
-    players = JSON.parse(fs.readFileSync(FILE));
-  } catch (e) {
-    console.log("❌ ошибка чтения файла");
-    players = {};
+// 🔥 НОВАЯ СИСТЕМА СКОРОСТИ
+let speed = 240;        // старт (медленно)
+let minSpeed = 110;     // предел
+
+// эффекты
+let flash = 0;
+let boomPower = 0;
+let boomX = 200;
+let boomY = 200;
+
+// звуки
+const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+const dieSound = new Audio("https://actions.google.com/sounds/v1/explosions/explosion.ogg");
+
+let soundUnlocked = false;
+function unlockSound(){
+  if(soundUnlocked) return;
+  eatSound.play().then(()=> eatSound.pause()).catch(()=>{});
+  dieSound.play().then(()=> dieSound.pause()).catch(()=>{});
+  soundUnlocked = true;
+}
+
+// вибрация
+function vibrate(pattern){
+  if(navigator.vibrate){
+    navigator.vibrate(pattern);
   }
 }
 
-// 💾 сохранить
-function save() {
-  fs.writeFileSync(FILE, JSON.stringify(players, null, 2));
+// TELEGRAM USER
+const user = tg?.initDataUnsafe?.user || {};
+const user_id = user.id || "guest_" + Math.random();
+const playerName = user.first_name || "Player";
+const avatar = user.photo_url || "";
+
+// рекорд
+best = localStorage.getItem("snake_best") || 0;
+document.getElementById("best").innerText = best;
+
+// UI
+window.addEventListener("load", () => {
+
+  document.getElementById("startBtn").addEventListener("click", () => {
+    unlockSound();
+    document.getElementById("menu").style.display = "none";
+    startGame();
+  });
+
+  document.getElementById("topBtn").addEventListener("click", openRating);
+
+  document.getElementById("closeRating").addEventListener("click", () => {
+    document.getElementById("ratingModal").classList.add("hidden");
+  });
+
+  document.body.addEventListener("touchstart", unlockSound, { once:true });
+  document.body.addEventListener("click", unlockSound, { once:true });
+});
+
+// API
+const API = "https://snake-server-5swh.onrender.com";
+
+function sendScore(score){
+  fetch(API + "/score", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      user_id,
+      name: playerName,
+      score,
+      avatar
+    })
+  }).catch(()=>{});
 }
 
-// 📤 СОХРАНИТЬ СЧЁТ
-app.post("/score", (req, res) => {
-  const { user_id, name, score, avatar } = req.body;
+function loadLeaderboard(){
+  fetch(API + "/scores")
+    .then(res => res.json())
+    .then(data => {
 
-  if (!user_id) return res.sendStatus(400);
+      const div = document.getElementById("ratingList");
+      div.innerHTML = "";
 
-  if (players[user_id]) {
-    if (score > players[user_id].score) {
-      players[user_id].score = score;
-      players[user_id].name = name;
-      players[user_id].avatar = avatar;
+      data.forEach((p,i)=>{
+
+        let cls = "";
+        if(i===0) cls="gold";
+        else if(i===1) cls="silver";
+        else if(i===2) cls="bronze";
+
+        div.innerHTML += `
+        <div class="player ${cls}">
+          <div class="player-left">
+            <img class="avatar"
+              src="${p.avatar || 'https://ui-avatars.com/api/?name='+p.name}">
+            <span>#${i+1} ${p.name}</span>
+          </div>
+          <span>${p.score}</span>
+        </div>
+        `;
+      });
+    })
+    .catch(()=>{});
+}
+
+function openRating(){
+  document.getElementById("ratingModal").classList.remove("hidden");
+  loadLeaderboard();
+}
+
+// 🎮 GAME
+function startGame(){
+  snake = [{x:10,y:10}];
+  dir = {x:1,y:0};
+  food = randomFood();
+  score = 0;
+
+  speed = 240; // медленный старт
+
+  flash = 0;
+  boomPower = 0;
+
+  document.getElementById("score").innerText = score;
+
+  started = true;
+
+  clearInterval(gameLoop);
+  gameLoop = setInterval(update, speed);
+}
+
+function randomFood(){
+  return {
+    x: Math.floor(Math.random()*20),
+    y: Math.floor(Math.random()*20)
+  };
+}
+
+// смерть
+function die(){
+  clearInterval(gameLoop);
+  started = false;
+
+  let head = snake[0];
+  boomX = head.x * 20 + 10;
+  boomY = head.y * 20 + 10;
+
+  flash = 1;
+  boomPower = 20;
+
+  dieSound.currentTime = 0;
+  dieSound.play().catch(()=>{});
+
+  vibrate([200,100,200]);
+
+  document.body.classList.add("shake-screen");
+  setTimeout(()=>{
+    document.body.classList.remove("shake-screen");
+  }, 400);
+
+  sendScore(score);
+
+  setTimeout(()=>{
+    openRating();
+    document.getElementById("menu").style.display = "flex";
+  }, 400);
+}
+
+// логика
+function update(){
+  let head = {
+    x: snake[0].x + dir.x,
+    y: snake[0].y + dir.y
+  };
+
+  if(head.x<0 || head.y<0 || head.x>=20 || head.y>=20){
+    return die();
+  }
+
+  for(let s of snake){
+    if(s.x===head.x && s.y===head.y) return die();
+  }
+
+  snake.unshift(head);
+
+  if(head.x===food.x && head.y===food.y){
+    food = randomFood();
+    score++;
+
+    eatSound.currentTime = 0;
+    eatSound.play().catch(()=>{});
+
+    vibrate(50);
+
+    // 🔥 СУПЕР ПЛАВНОЕ УСКОРЕНИЕ
+    if(speed > minSpeed){
+      speed -= 1; // МЕДЛЕННО уменьшается
+      clearInterval(gameLoop);
+      gameLoop = setInterval(update, speed);
     }
+
+    if(score > best){
+      best = score;
+      localStorage.setItem("snake_best", best);
+      document.getElementById("best").innerText = best;
+    }
+
   } else {
-    players[user_id] = { name, score, avatar };
+    snake.pop();
   }
 
-  save(); // 🔥 ВАЖНО
+  draw();
+}
 
-  res.sendStatus(200);
-});
+// 🎨 draw
+function draw(){
+  const scale = canvas.width / BASE_SIZE;
 
-// 📥 ПОЛУЧИТЬ РЕЙТИНГ
-app.get("/scores", (req, res) => {
-  const sorted = Object.values(players)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 50);
+  ctx.fillStyle = "#1e3a5f";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  res.json(sorted);
-});
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(food.x*20*scale+10*scale, food.y*20*scale+10*scale, 8*scale, 0, Math.PI*2);
+  ctx.fill();
 
-// 🚀 старт
-app.listen(PORT, () => {
-  console.log(`🔥 Server started on port ${PORT}`);
+  ctx.fillStyle = "green";
+  ctx.fillRect(food.x*20*scale+9*scale, food.y*20*scale+2*scale, 3*scale, 6*scale);
+
+  for(let i = snake.length - 1; i >= 0; i--){
+    let s = snake[i];
+
+    let wave = Math.sin((Date.now()/100) + i) * 2;
+
+    let x = s.x * 20 * scale + 10 * scale + wave;
+    let y = s.y * 20 * scale + 10 * scale;
+
+    let radius = (10 - i * 0.2) * scale;
+    if(radius < 5*scale) radius = 5*scale;
+
+    let gradient = ctx.createRadialGradient(x, y, 2, x, y, radius);
+    gradient.addColorStop(0, "#00ff88");
+    gradient.addColorStop(1, "#007744");
+
+    ctx.fillStyle = gradient;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  let head = snake[0];
+  ctx.fillStyle = "black";
+  ctx.beginPath();
+  ctx.arc(head.x*20*scale+6*scale, head.y*20*scale+8*scale, 2*scale, 0, Math.PI*2);
+  ctx.arc(head.x*20*scale+14*scale, head.y*20*scale+8*scale, 2*scale, 0, Math.PI*2);
+  ctx.fill();
+
+  document.getElementById("score").innerText = score;
+}
+
+// свайпы
+let startX = 0;
+let startY = 0;
+
+canvas.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  startX = t.clientX;
+  startY = t.clientY;
+}, { passive: false });
+
+canvas.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+}, { passive: false });
+
+canvas.addEventListener("touchend", (e) => {
+  e.preventDefault();
+
+  const t = e.changedTouches[0];
+
+  let dx = t.clientX - startX;
+  let dy = t.clientY - startY;
+
+  if(Math.abs(dx) < 25 && Math.abs(dy) < 25) return;
+
+  if(Math.abs(dx) > Math.abs(dy)){
+    if(dx > 0 && dir.x !== -1) dir = {x:1,y:0};
+    if(dx < 0 && dir.x !== 1) dir = {x:-1,y:0};
+  } else {
+    if(dy > 0 && dir.y !== -1) dir = {x:0,y:1};
+    if(dy < 0 && dir.y !== 1) dir = {x:0,y:-1};
+  }
+}, { passive: false });
+
+// клавиатура
+document.addEventListener("keydown", e=>{
+  if(!started) return;
+
+  if(e.key==="ArrowUp" && dir.y!==1) dir={x:0,y:-1};
+  if(e.key==="ArrowDown" && dir.y!==-1) dir={x:0,y:1};
+  if(e.key==="ArrowLeft" && dir.x!==1) dir={x:-1,y:0};
+  if(e.key==="ArrowRight" && dir.x!==-1) dir={x:1,y:0};
 });
